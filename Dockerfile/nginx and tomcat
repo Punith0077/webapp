@@ -1,0 +1,24 @@
+# Stage 1: Build the Tomcat image
+FROM tomcat:latest AS builder
+
+# Stage 2: Build the Nginx image
+FROM nginx:latest
+
+# Remove the default Nginx static files
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy the default Tomcat web application from the Tomcat image to the Nginx static files directory
+COPY --from=builder /usr/local/tomcat/webapps/ /usr/share/nginx/html/
+
+# Create the Nginx static files directory
+RUN mkdir -p /usr/share/nginx/html
+
+# Set ownership and permissions for the copied files
+RUN chown -R nginx:nginx /usr/share/nginx/html
+RUN chmod -R 755 /usr/share/nginx/html
+
+# Expose port 80 for Nginx
+EXPOSE 80
+
+# Start Nginx when the container is run
+CMD ["nginx", "-g", "daemon off;"]
